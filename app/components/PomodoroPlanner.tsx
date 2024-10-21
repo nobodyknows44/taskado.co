@@ -2,7 +2,6 @@
 import { Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useState, useEffect, useCallback } from 'react';
 
-
 interface Task {
   id: number;
   text: string;
@@ -71,6 +70,7 @@ const PomodoroPlanner: React.FC = () => {
     }
     return () => clearInterval(interval);
   }, [isRunning, time]);
+
   return (
     <div className="bg-indigo-800 min-h-screen text-white p-4">
       <div className="max-w-md mx-auto bg-indigo-700 rounded-lg p-6 shadow-lg">
@@ -204,27 +204,26 @@ const PomodoroPlanner: React.FC = () => {
         </div>
 
         <div className="mb-4">
-          <h2 className="font-semibold mb-2">THINGS I'M GRATEFUL FOR</h2>
+          <h2 className="font-semibold mb-2">THINGS I&apos;M GRATEFUL FOR</h2>
           <textarea
             value={gratitude}
             onChange={(e) => setGratitude(e.target.value)}
             className="w-full bg-indigo-600 p-2 rounded"
             rows={3}
-            placeholder="Enter things you're grateful for"
+            placeholder="Enter things you&apos;re grateful for"
           />
         </div>
 
         <div className="mb-4">
-          <h2 className="font-semibold mb-2">THINGS I'VE LEARNED</h2>
+          <h2 className="font-semibold mb-2">THINGS I&apos;VE LEARNED</h2>
           <textarea
             value={learned}
             onChange={(e) => setLearned(e.target.value)}
             className="w-full bg-indigo-600 p-2 rounded"
             rows={3}
-            placeholder="Enter things you've learned"
+            placeholder="Enter things you&apos;ve learned"
           />
         </div>
-
         <div className="mb-4">
           <h2 className="font-semibold mb-2">NOTES</h2>
           <textarea
