@@ -1,73 +1,76 @@
-import { Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
-import React, { useState, useEffect, useCallback } from 'react';
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
+import { Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
+
 interface Task {
-  id: number;
-  text: string;
-  type: 'main' | 'secondary' | 'additional' | 'mini';
-  completed: boolean;
+  id: number
+  text: string
+  type: 'main' | 'secondary' | 'additional' | 'mini'
+  completed: boolean
 }
 
-const PomodoroPlanner: React.FC = () => {
-  const [timerMode, setTimerMode] = useState<'POMODORO' | 'SHORT_BREAK' | 'LONG_BREAK'>('POMODORO');
-  const [time, setTime] = useState(25 * 60);
-  const [isRunning, setIsRunning] = useState(false);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [exercise, setExercise] = useState('');
-  const [gratitude, setGratitude] = useState('');
-  const [learned, setLearned] = useState('');
-  const [notes, setNotes] = useState('');
+export default function PomodoroPlanner() {
+  const [timerMode, setTimerMode] = useState<'POMODORO' | 'SHORT_BREAK' | 'LONG_BREAK'>('POMODORO')
+  const [time, setTime] = useState(25 * 60)
+  const [isRunning, setIsRunning] = useState(false)
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [exercise, setExercise] = useState('')
+  const [gratitude, setGratitude] = useState('')
+  const [learned, setLearned] = useState('')
+  const [notes, setNotes] = useState('')
 
   const formatTime = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = seconds % 60
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
+  }
 
   const handleAddTask = (type: Task['type']) => {
-    setTasks([...tasks, { id: Date.now(), text: '', type, completed: false }]);
-  };
+    setTasks([...tasks, { id: Date.now(), text: '', type, completed: false }])
+  }
 
   const handleTaskChange = (id: number, text: string) => {
-    setTasks(tasks.map(task => task.id === id ? { ...task, text } : task));
-  };
+    setTasks(tasks.map(task => task.id === id ? { ...task, text } : task))
+  }
 
   const handleTaskCompletion = (id: number) => {
-    setTasks(tasks.map(task => task.id === id ? { ...task, completed: !task.completed } : task));
-  };
+    setTasks(tasks.map(task => task.id === id ? { ...task, completed: !task.completed } : task))
+  }
 
   const handleDeleteTask = (id: number) => {
-    setTasks(tasks.filter(task => task.id !== id));
-  };
+    setTasks(tasks.filter(task => task.id !== id))
+  }
 
   const resetTimer = useCallback(() => {
     switch (timerMode) {
       case 'POMODORO':
-        setTime(25 * 60);
-        break;
+        setTime(25 * 60)
+        break
       case 'SHORT_BREAK':
-        setTime(5 * 60);
-        break;
+        setTime(5 * 60)
+        break
       case 'LONG_BREAK':
-        setTime(15 * 60);
-        break;
+        setTime(15 * 60)
+        break
     }
-  }, [timerMode]);
+  }, [timerMode])
 
   useEffect(() => {
-    resetTimer();
-  }, [timerMode, resetTimer]);
+    resetTimer()
+  }, [timerMode, resetTimer])
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: NodeJS.Timeout
     if (isRunning && time > 0) {
       interval = setInterval(() => {
-        setTime((prevTime) => prevTime - 1);
-      }, 1000);
+        setTime((prevTime) => prevTime - 1)
+      }, 1000)
     } else if (time === 0) {
-      setIsRunning(false);
+      setIsRunning(false)
     }
-    return () => clearInterval(interval);
-  }, [isRunning, time]);
+    return () => clearInterval(interval)
+  }, [isRunning, time])
 
   return (
     <div className="bg-indigo-800 min-h-screen text-white p-4">
@@ -222,6 +225,7 @@ const PomodoroPlanner: React.FC = () => {
             placeholder="Enter things you&apos;ve learned"
           />
         </div>
+
         <div className="mb-4">
           <h2 className="font-semibold mb-2">NOTES</h2>
           <textarea
@@ -243,7 +247,5 @@ const PomodoroPlanner: React.FC = () => {
         </div>
       </div>
     </div>
-  );
-};
-
-export default PomodoroPlanner;
+  )
+}
