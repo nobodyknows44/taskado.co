@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 
 interface Task {
   id: number
@@ -19,11 +19,17 @@ export default function PomodoroPlanner() {
   const [gratitude, setGratitude] = useState('')
   const [learned, setLearned] = useState('')
   const [notes, setNotes] = useState('')
+  const [currentDate, setCurrentDate] = useState(new Date())
 
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60)
     const remainingSeconds = seconds % 60
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
+  }
+
+  const formatDate = (date: Date): string => {
+    const options: Intl.DateTimeFormatOptions = { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' }
+    return date.toLocaleDateString('en-US', options)
   }
 
   const handleAddTask = (type: Task['type']) => {
@@ -75,35 +81,74 @@ export default function PomodoroPlanner() {
   return (
     <div className="bg-indigo-800 min-h-screen text-white p-4">
       <div className="max-w-md mx-auto bg-indigo-700 rounded-lg p-6 shadow-lg">
-        <div className="flex justify-between mb-4">
-          <button
-            className={`px-4 py-2 rounded ${timerMode === 'POMODORO' ? 'bg-indigo-600' : 'bg-indigo-800'}`}
-            onClick={() => setTimerMode('POMODORO')}
-          >
-            POMODORO
-          </button>
-          <button
-            className={`px-4 py-2 rounded ${timerMode === 'SHORT_BREAK' ? 'bg-indigo-600' : 'bg-indigo-800'}`}
-            onClick={() => setTimerMode('SHORT_BREAK')}
-          >
-            SHORT BREAK
-          </button>
-          <button
-            className={`px-4 py-2 rounded ${timerMode === 'LONG_BREAK' ? 'bg-indigo-600' : 'bg-indigo-800'}`}
-            onClick={() => setTimerMode('LONG_BREAK')}
-          >
-            LONG BREAK
-          </button>
+        <div className="mb-6 border-b border-indigo-600 pb-4">
+          <div className="flex justify-between mb-4">
+            <button
+              className={`px-4 py-2 rounded ${timerMode === 'POMODORO' ? 'bg-indigo-600' : 'bg-indigo-800'}`}
+              onClick={() => setTimerMode('POMODORO')}
+            >
+              POMODORO
+            </button>
+            <button
+              className={`px-4 py-2 rounded ${timerMode === 'SHORT_BREAK' ? 'bg-indigo-600' : 'bg-indigo-800'}`}
+              onClick={() => setTimerMode('SHORT_BREAK')}
+            >
+              SHORT BREAK
+            </button>
+            <button
+              className={`px-4 py-2 rounded ${timerMode === 'LONG_BREAK' ? 'bg-indigo-600' : 'bg-indigo-800'}`}
+              onClick={() => setTimerMode('LONG_BREAK')}
+            >
+              LONG BREAK
+            </button>
+          </div>
+          
+          <div className="text-center">
+            <div className="text-6xl font-bold">{formatTime(time)}</div>
+            <button
+              className="mt-4 px-6 py-2 bg-yellow-500 text-black rounded-full font-semibold"
+              onClick={() => setIsRunning(!isRunning)}
+            >
+              {isRunning ? 'PAUSE' : 'START'}
+            </button>
+          </div>
         </div>
-        
-        <div className="text-center mb-4">
-          <div className="text-6xl font-bold">{formatTime(time)}</div>
-          <button
-            className="mt-4 px-6 py-2 bg-yellow-500 text-black rounded-full font-semibold"
-            onClick={() => setIsRunning(!isRunning)}
-          >
-            {isRunning ? 'PAUSE' : 'START'}
-          </button>
+
+        <div className="mb-6">
+          <h1 className="text-4xl font-bold">{formatDate(currentDate).split(',')[0]},</h1>
+          <h1 className="text-4xl font-bold">{formatDate(currentDate).split(',')[1]}</h1>
+        </div>
+
+        <div className="mb-4">
+          <h2 className="font-semibold mb-2">MINI TASKS</h2>
+          <div className="bg-indigo-600 p-4 rounded-lg">
+            {tasks.filter(task => task.type === 'mini').map(task => (
+              <div key={task.id} className="flex items-center mb-2 bg-indigo-500 p-2 rounded">
+                <input
+                  type="checkbox"
+                  checked={task.completed}
+                  onChange={() => handleTaskCompletion(task.id)}
+                  className="mr-2"
+                />
+                <input
+                  type="text"
+                  value={task.text}
+                  onChange={(e) => handleTaskChange(task.id, e.target.value)}
+                  className={`flex-grow bg-transparent outline-none ${task.completed ? 'line-through' : ''}`}
+                  placeholder="Enter mini task"
+                />
+                <button onClick={() => handleDeleteTask(task.id)} className="ml-2 text-indigo-300">
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))}
+            <button
+              className="w-full p-2 border border-dashed border-indigo-400 text-center text-indigo-300 rounded mt-2"
+              onClick={() => handleAddTask('mini')}
+            >
+              + Add Mini Task
+            </button>
+          </div>
         </div>
 
         <div className="mb-4">
@@ -120,7 +165,8 @@ export default function PomodoroPlanner() {
                 type="text"
                 value={task.text}
                 onChange={(e) => handleTaskChange(task.id, e.target.value)}
-                className="flex-grow bg-indigo-600 p-2 rounded"
+                className={`flex-grow bg-indigo-600 p-2 rounded ${task.completed ? 'line-through' : ''}`}
+                placeholder="Enter main task"
               />
               <button onClick={() => handleDeleteTask(task.id)} className="ml-2 text-red-400">
                 <Trash2 size={16} />
@@ -149,7 +195,8 @@ export default function PomodoroPlanner() {
                 type="text"
                 value={task.text}
                 onChange={(e) => handleTaskChange(task.id, e.target.value)}
-                className="flex-grow bg-indigo-600 p-2 rounded"
+                className={`flex-grow bg-indigo-600 p-2 rounded ${task.completed ? 'line-through' : ''}`}
+                placeholder="Enter secondary task"
               />
               <button onClick={() => handleDeleteTask(task.id)} className="ml-2 text-red-400">
                 <Trash2 size={16} />
@@ -165,8 +212,8 @@ export default function PomodoroPlanner() {
         </div>
 
         <div className="mb-4">
-          <h2 className="font-semibold mb-2">MINI TASKS</h2>
-          {tasks.filter(task => task.type === 'mini').map(task => (
+          <h2 className="font-semibold mb-2">ADDITIONAL TASKS</h2>
+          {tasks.filter(task => task.type === 'additional').map(task => (
             <div key={task.id} className="flex items-center mb-2">
               <input
                 type="checkbox"
@@ -178,7 +225,8 @@ export default function PomodoroPlanner() {
                 type="text"
                 value={task.text}
                 onChange={(e) => handleTaskChange(task.id, e.target.value)}
-                className="flex-grow bg-indigo-600 p-2 rounded"
+                className={`flex-grow bg-indigo-600 p-2 rounded ${task.completed ? 'line-through' : ''}`}
+                placeholder="Enter additional task"
               />
               <button onClick={() => handleDeleteTask(task.id)} className="ml-2 text-red-400">
                 <Trash2 size={16} />
@@ -187,9 +235,9 @@ export default function PomodoroPlanner() {
           ))}
           <button
             className="w-full p-2 border border-dashed border-indigo-500 text-left text-indigo-300"
-            onClick={() => handleAddTask('mini')}
+            onClick={() => handleAddTask('additional')}
           >
-            + Add Mini Task
+            + Add Task
           </button>
         </div>
 
@@ -235,11 +283,6 @@ export default function PomodoroPlanner() {
             rows={3}
             placeholder="Enter any additional notes"
           />
-        </div>
-
-        <div className="flex justify-between text-indigo-400">
-          <button><ChevronLeft /></button>
-          <button><ChevronRight /></button>
         </div>
 
         <div className="text-xs text-indigo-400 mt-8 text-center">
