@@ -1,7 +1,5 @@
-'use client';
 import { Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useState, useEffect, useCallback } from 'react';
-
 interface Task {
   id: number;
   text: string;
