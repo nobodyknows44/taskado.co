@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Clock, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+
 
 interface Task {
   id: number;
@@ -71,7 +71,6 @@ const PomodoroPlanner: React.FC = () => {
     }
     return () => clearInterval(interval);
   }, [isRunning, time]);
-
   return (
     <div className="bg-indigo-800 min-h-screen text-white p-4">
       <div className="max-w-md mx-auto bg-indigo-700 rounded-lg p-6 shadow-lg">
@@ -243,7 +242,7 @@ const PomodoroPlanner: React.FC = () => {
         </div>
 
         <div className="text-xs text-indigo-400 mt-8 text-center">
-          ©2021 — PomoPlanner — Built in NoCode (with Sktch.io) by @ybouane
+          ©2024 — PomidorroPlanner — Built in Node.js by @alexkopytin
         </div>
       </div>
     </div>
