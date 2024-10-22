@@ -78,6 +78,15 @@ export default function PomodoroPlanner() {
     return () => clearInterval(interval)
   }, [isRunning, time])
 
+  useEffect(() => {
+    // Update the date every minute
+    const dateInterval = setInterval(() => {
+      setCurrentDate(new Date())
+    }, 60000)
+
+    return () => clearInterval(dateInterval)
+  }, [])
+
   return (
     <div className="bg-indigo-800 min-h-screen text-white p-4">
       <div className="max-w-md mx-auto bg-indigo-700 rounded-lg p-6 shadow-lg">
