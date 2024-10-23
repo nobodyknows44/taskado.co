@@ -79,6 +79,7 @@ export default function PomodoroPlanner() {
   }, [isRunning, time])
 
   useEffect(() => {
+    // Update the date every minute
     const dateInterval = setInterval(() => {
       setCurrentDate(new Date())
     }, 60000)
@@ -87,24 +88,24 @@ export default function PomodoroPlanner() {
   }, [])
 
   return (
-    <div className="bg-indigo-800 min-h-screen text-white p-4 overflow-x-hidden">
-      <div className="max-w-md mx-auto bg-indigo-700 rounded-lg p-4 sm:p-6 shadow-lg">
+    <div className="bg-indigo-800 min-h-screen text-white p-4">
+      <div className="max-w-md mx-auto bg-indigo-700 rounded-lg p-6 shadow-lg">
         <div className="mb-6 border-b border-indigo-600 pb-4">
-          <div className="flex flex-wrap justify-between mb-4 gap-2">
+          <div className="flex justify-between mb-4">
             <button
-              className={`px-2 sm:px-4 py-2 rounded text-sm sm:text-base ${timerMode === 'POMODORO' ? 'bg-indigo-600' : 'bg-indigo-800'}`}
+              className={`px-4 py-2 rounded ${timerMode === 'POMODORO' ? 'bg-indigo-600' : 'bg-indigo-800'}`}
               onClick={() => setTimerMode('POMODORO')}
             >
               POMODORO
             </button>
             <button
-              className={`px-2 sm:px-4 py-2 rounded text-sm sm:text-base ${timerMode === 'SHORT_BREAK' ? 'bg-indigo-600' : 'bg-indigo-800'}`}
+              className={`px-4 py-2 rounded ${timerMode === 'SHORT_BREAK' ? 'bg-indigo-600' : 'bg-indigo-800'}`}
               onClick={() => setTimerMode('SHORT_BREAK')}
             >
               SHORT BREAK
             </button>
             <button
-              className={`px-2 sm:px-4 py-2 rounded text-sm sm:text-base ${timerMode === 'LONG_BREAK' ? 'bg-indigo-600' : 'bg-indigo-800'}`}
+              className={`px-4 py-2 rounded ${timerMode === 'LONG_BREAK' ? 'bg-indigo-600' : 'bg-indigo-800'}`}
               onClick={() => setTimerMode('LONG_BREAK')}
             >
               LONG BREAK
@@ -112,9 +113,9 @@ export default function PomodoroPlanner() {
           </div>
           
           <div className="text-center">
-            <div className="text-4xl sm:text-6xl font-bold">{formatTime(time)}</div>
+            <div className="text-6xl font-bold">{formatTime(time)}</div>
             <button
-              className="mt-4 px-6 py-2 bg-yellow-500 text-black rounded-full font-semibold text-sm sm:text-base"
+              className="mt-4 px-6 py-2 bg-yellow-500 text-black rounded-full font-semibold"
               onClick={() => setIsRunning(!isRunning)}
             >
               {isRunning ? 'PAUSE' : 'START'}
@@ -123,8 +124,8 @@ export default function PomodoroPlanner() {
         </div>
 
         <div className="mb-6">
-          <h1 className="text-2xl sm:text-4xl font-bold">{formatDate(currentDate).split(',')[0]},</h1>
-          <h1 className="text-2xl sm:text-4xl font-bold">{formatDate(currentDate).split(',')[1]}</h1>
+          <h1 className="text-4xl font-bold">{formatDate(currentDate).split(',')[0]},</h1>
+          <h1 className="text-4xl font-bold">{formatDate(currentDate).split(',')[1]}</h1>
         </div>
 
         <div className="mb-4">
