@@ -19,10 +19,13 @@ export default function HeroSection() {
 
     script.onload = () => {
       if (window.UnicornStudio && unicornRef.current) {
+        const isMobile = window.innerWidth <= 768; // Check if it's mobile
+        const scale = isMobile ? 0.7 : 1; // Adjust scale for mobile
+
         window.UnicornStudio.addScene({
           elementId: unicornRef.current.id,
           fps: 60,
-          scale: 1,
+          scale: scale, // Dynamic scale
           dpi: 1.5,
           projectId: "LJFs3NJlr1VGGop3poFS",
           lazyLoad: false,
