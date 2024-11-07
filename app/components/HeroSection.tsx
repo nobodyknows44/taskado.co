@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 declare global {
   interface Window {
@@ -10,8 +10,16 @@ declare global {
 
 export default function HeroSection() {
   const unicornRef = useRef<HTMLDivElement>(null)
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768)
+    }
+
+    handleResize() // Initial check
+    window.addEventListener('resize', handleResize)
+
     const script = document.createElement('script')
     script.src = "https://cdn.unicorn.studio/v1.3.2/unicornStudio.umd.js"
     script.async = true
@@ -19,29 +27,33 @@ export default function HeroSection() {
 
     script.onload = () => {
       if (window.UnicornStudio && unicornRef.current) {
-        const isMobile = window.innerWidth <= 768; // Check if it's mobile
-        const scale = isMobile ? 0.7 : 1; // Adjust scale for mobile
+        const loadScene = () => {
+          const scale = isMobile ? 0.5 : 1; // Adjust scale for mobile
 
-        window.UnicornStudio.addScene({
-          elementId: unicornRef.current.id,
-          fps: 60,
-          scale: scale, // Dynamic scale
-          dpi: 1.5,
-          projectId: "LJFs3NJlr1VGGop3poFS",
-          lazyLoad: false,
-          altText: "PomoPlanner Hero Section",
-          ariaLabel: "Interactive hero section for PomoPlanner",
-          production: false,
-          interactivity: {
-            mouse: {
-              disableMobile: true,
+          window.UnicornStudio.addScene({
+            elementId: unicornRef.current!.id,
+            fps: 60,
+            scale: scale,
+            dpi: 1.5,
+            projectId: "LJFs3NJlr1VGGop3poFS",
+            lazyLoad: false,
+            altText: "PomoPlanner Hero Section",
+            ariaLabel: "Interactive hero section for PomoPlanner",
+            production: false,
+            interactivity: {
+              mouse: {
+                disableMobile: true,
+              },
             },
-          },
-        }).then((scene: any) => {
-          console.log('Unicorn Studio scene loaded')
-        }).catch((err: Error) => {
-          console.error('Error loading Unicorn Studio scene:', err)
-        })
+          }).then((scene: any) => {
+            console.log('Unicorn Studio scene loaded')
+          }).catch((err: Error) => {
+            console.error('Error loading Unicorn Studio scene:', err)
+          })
+        }
+
+        loadScene()
+        window.addEventListener('resize', loadScene)
       }
     }
 
@@ -50,8 +62,9 @@ export default function HeroSection() {
         window.UnicornStudio.destroy()
       }
       document.body.removeChild(script)
+      window.removeEventListener('resize', handleResize)
     }
-  }, [])
+  }, [isMobile])
 
   return (
     <section className="w-full h-screen overflow-hidden">
