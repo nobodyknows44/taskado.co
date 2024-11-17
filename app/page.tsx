@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <main className="min-h-screen flex flex-col">
       <HeroSection />
-      <section className="flex-grow bg-indigo-800 py-8">
+      <section className="flex-grow bg-[#151515] py-8">
         <div className="container mx-auto px-4">
           <PomodoroPlanner />
         </div>
