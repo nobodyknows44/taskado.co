@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Trash2, Play, Pause, Volume2, VolumeX, SkipBack, SkipForward, Edit2, Check, Send, ChevronDown, Eraser, Copy } from 'lucide-react'
+import { Trash2, Play, Pause, Volume2, VolumeX, SkipBack, SkipForward, Edit2, Check, Send, ChevronDown, Eraser, Copy, Calendar as CalendarIcon, LogIn } from 'lucide-react'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import Calendar from './Calendar'
 
 interface Task {
   id: number
@@ -27,8 +28,9 @@ interface AudioTrack {
 }
 
 const audioTracks: AudioTrack[] = [
-  { id: '1', name: 'Peaceful Piano', src: '/audio/peaceful-piano.mp3' },
-  { id: '2', name: 'Gentle Rain', src: '/audio/gentle-rain.mp3' },
+  { id: '1', name: 'Peaceful Piano', src: '/audio/piano_1.mp3' },
+  { id: '2', name: 'Relaxing Piano', src: '/audio/piano_2.mp3' },
+  { id: '3', name: 'Piano for Study', src: '/audio/piano_3.mp3' },
   // You can remove or comment out the other tracks until you have them
   // { id: '3', name: 'Forest Ambience', src: '/audio/forest-ambience.mp3' },
   // { id: '4', name: 'Ocean Waves', src: '/audio/ocean-waves.mp3' },
@@ -571,289 +573,346 @@ export default function PomodoroPlanner() {
     }
   }
 
+  // Add these state variables at the top with other states
+  const [selectedDate, setSelectedDate] = useState(new Date())
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false)
+
+  // Add this helper function
+  const formatDateHeader = (date: Date): string => {
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    })
+  }
+
+  // First, make sure you have the currentView state
+  const [currentView, setCurrentView] = useState<'pomodoro' | 'calendar'>('pomodoro')
+
   return (
     <div className="min-h-screen bg-[#151515] text-white p-8">
-      <div className="max-w-7xl mx-auto grid grid-cols-12 gap-6">
-        {/* Right Column - Timer and Quote */}
-        <div className="col-span-4 space-y-6">
-          {/* Timer Section */}
-          <div className={`${getPanelColor()} rounded-2xl p-8 shadow-lg`}>
-            <TimerTabs />
-            <TimerDisplay />
-          </div>
+      {/* Date Navigation */}
+      
+      {/* Navigation Buttons */}
+      <div className="flex gap-4 mb-8 relative z-50">
+        <button 
+          onClick={() => setCurrentView('calendar')}
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl transition-all shadow-lg
+            ${currentView === 'calendar' 
+              ? 'bg-[#f5d820] text-[#1E1B4B]' 
+              : 'bg-[#2c2a6e] text-white/90 hover:bg-[#2c2a6e]/80'
+            }`}
+        >
+          <CalendarIcon size={20} />
+          <span>MY YEAR</span>
+        </button>
+        
+        <button 
+          onClick={() => setCurrentView('pomodoro')}
+          className={`flex items-center gap-2 px-6 py-3 rounded-xl transition-all shadow-lg
+            ${currentView === 'pomodoro' 
+              ? 'bg-[#f5d820] text-[#1E1B4B]' 
+              : 'bg-[#2c2a6e] text-white/90 hover:bg-[#2c2a6e]/80'
+            }`}
+        >
+          <Edit2 size={20} />
+          <span>TO-DO LIST</span>
+        </button>
 
-          {/* Quote Panel - Moved under timer */}
-          <div className={`${getPanelColor()} rounded-2xl p-6 shadow-lg`}>
-            <div className="text-center space-y-4">
-              <p className="text-xl">"Doubt everything. Find your own light."</p>
-              <p className="text-white/60">- Buddha -</p>
-            </div>
-          </div>
-
-          {/* Focus Sounds - Compact Version */}
-          <div className={`${getPanelColor()} rounded-2xl shadow-lg overflow-hidden`}>
-            <div className="flex flex-col h-[250px]">
-              {/* Header */}
-              <div className="p-4 border-b border-white/10">
-                <h2 className="text-xl font-semibold">Focus Sounds</h2>
-              </div>
-
-              {/* Player Content */}
-              <div className="flex-1 p-5 flex flex-col justify-between">
-                {/* Top Section: Track Name & Controls */}
-                <div className="space-y-5">
-                  {/* Track Name */}
-                  <div className="text-center">
-                    <h3 className="text-xl font-medium text-white/90">{currentTrack.name}</h3>
-                  </div>
-                  
-                  {/* Main Controls */}
-                  <div className="flex justify-center items-center gap-8">
-                    <button
-                      className="text-white/60 hover:text-[#f5d820] transition-all"
-                      onClick={() => changeTrack('prev')}
-                    >
-                      <SkipBack size={20} />
-                    </button>
-                    <button
-                      className="bg-[#f5d820] text-[#1E1B4B] p-4 rounded-full hover:bg-[#f5d820]/90 
-                        transform hover:scale-105 active:scale-95 transition-all shadow-lg"
-                      onClick={togglePlay}
-                    >
-                      {isPlaying ? <Pause size={24} /> : <Play size={24} className="ml-0.5" />}
-                    </button>
-                    <button
-                      className="text-white/60 hover:text-[#f5d820] transition-all"
-                      onClick={() => changeTrack('next')}
-                    >
-                      <SkipForward size={20} />
-                    </button>
-                  </div>
-
-                  {/* Volume Slider */}
-                  <div className="flex items-center gap-3 px-1">
-                    <button 
-                      onClick={toggleMute}
-                      className="text-white/60 hover:text-[#f5d820] transition-colors"
-                    >
-                      {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-                    </button>
-                    <div className="flex-1 relative h-1 bg-white/10 rounded-full">
-                      <div 
-                        className="absolute left-0 top-0 h-full bg-[#f5d820] rounded-full"
-                        style={{ width: `${volume * 100}%` }}
-                      />
-                      <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.01"
-                        value={volume}
-                        onChange={handleVolumeChange}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Left Column - Tasks and Chat */}
-        <div className="col-span-8 space-y-6">
-          
-          {/* Today's Focus */}
-          <div className={`${getPanelColor()} rounded-2xl p-6 shadow-lg`}>
-            <h2 className="text-2xl font-semibold mb-6">Today's Focus</h2>
-            <div className="space-y-3">
-              {tasks.filter(task => task.type === 'main').map(task => (
-                <TaskItem key={task.id} task={task} />
-              ))}
-            </div>
-            <button
-              onClick={() => handleAddTask('main')}
-              className="w-full p-2 border border-dashed border-[#f5d820] rounded-xl 
-                text-left text-[#f5d820] mt-4 hover:bg-[#f5d820]/5 transition-all"
-            >
-              + Add Task
-            </button>
-          </div>
-
-          {/* Supporting Tasks */}
-          <div className={`${getPanelColor()} rounded-2xl p-6 shadow-lg mt-6`}>
-            <h2 className="text-2xl font-semibold mb-6">Supporting Tasks</h2>
-            <div className="space-y-3">
-              {tasks.filter(task => task.type === 'secondary').map(task => (
-                <TaskItem key={task.id} task={task} />
-              ))}
-            </div>
-            <button
-              onClick={() => handleAddTask('secondary')}
-              className="w-full p-2 border border-dashed border-[#f5d820] rounded-xl 
-                text-left text-[#f5d820] mt-4 hover:bg-[#f5d820]/5 transition-all"
-            >
-              + Add Task
-            </button>
-          </div>
-          {/* Quick Wins - Temporarily Disabled
-          <div className="bg-[#2D2A6E] rounded-2xl p-6 shadow-lg">
-            <h2 className="text-2xl font-semibold mb-6">Quick Wins</h2>
-            <div className="space-y-3">
-              {tasks.filter(task => task.type === 'mini').map(task => (
-                <TaskItem key={task.id} task={task} />
-              ))}
-            </div>
-            <button
-              onClick={() => handleAddTask('mini')}
-              className="w-full p-2 border border-dashed border-[#F6C944] rounded-xl 
-                text-left text-[#F6C944] mt-4 hover:bg-[#F6C944]/5 transition-all"
-            >
-              + Add Task
-            </button>
-          </div>
-          */}
-          {/* Bottom Row - Chat and Music */}
-          <div className="grid grid-cols-2 gap-6">
-            {/* AI Chat Panel - Half width */}
-            <div className={`${getPanelColor()} rounded-2xl shadow-lg overflow-hidden`}>
-              <div className="flex flex-col h-[450px]">
-                {/* Chat Header */}
-                <div className="p-4 border-b border-white/10">
-                  <h2 className="text-xl font-semibold">Chat with AI</h2>
-                </div>
-
-                {/* Chat Messages Area */}
-                <div className="flex-1 p-4 overflow-y-auto space-y-4">
-                  {messages.map(message => (
-                    <div
-                      key={message.id}
-                      className={`${
-                        message.sender === 'user' 
-                          ? 'bg-white/5 ml-12' 
-                          : 'bg-[#f5d820]/10 mr-12'
-                      } rounded-xl p-4`}
-                    >
-                      <p className="text-white/90">{message.text}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Input Area */}
-                <div className="p-4 border-t border-white/10">
-                  <div className="relative">
-                    <textarea
-                      value={aiMessage}
-                      onChange={(e) => setAiMessage(e.target.value)}
-                      placeholder="Ask me anything..."
-                      className="w-full bg-white/5 rounded-xl pl-4 pr-12 py-3 text-white/90 
-                        placeholder-white/30 border border-white/10 focus:border-[#f5d820]/30 
-                        focus:ring-0 resize-none"
-                      rows={1}
-                    />
-                    <button
-                      onClick={handleSendMessage}
-                      disabled={isSending}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 
-                        text-[#f5d820] hover:text-[#f5d820]/80 transition-colors"
-                    >
-                      <Send size={20} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Notes Panel - Half width */}
-            <div className={`${getPanelColor()} rounded-2xl shadow-lg overflow-hidden`}>
-              <div className="flex flex-col h-[450px]">
-                {/* Header with Actions */}
-                <div className="p-4 border-b border-white/10 flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <h2 className="text-xl font-semibold">Quick Notes</h2>
-                    <span className="text-xs text-white/50">Auto-saving</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={clearNotes}
-                      className="p-1.5 rounded-lg hover:bg-white/5 text-white/50 
-                        hover:text-white/90 transition-all"
-                    >
-                      <Eraser size={16} />
-                    </button>
-                    <button 
-                      onClick={copyToClipboard}
-                      className="p-1.5 rounded-lg hover:bg-white/5 text-white/50 
-                        hover:text-white/90 transition-all"
-                    >
-                      <Copy size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Notes Content */}
-                <div className="flex-1 p-4 flex flex-col gap-4">
-                  {/* Quick Actions */}
-                  <div className="flex gap-2 flex-wrap">
-                    <button 
-                      onClick={() => addQuickNote("Task:")}
-                      className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 
-                        text-sm text-white/70 hover:text-white/90 transition-all"
-                    >
-                      + Task
-                    </button>
-                    <button 
-                      onClick={() => addQuickNote("Idea:")}
-                      className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 
-                        text-sm text-white/70 hover:text-white/90 transition-all"
-                    >
-                      + Idea
-                    </button>
-                    <button 
-                      onClick={() => addQuickNote("Remember:")}
-                      className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 
-                        text-sm text-white/70 hover:text-white/90 transition-all"
-                    >
-                      + Reminder
-                    </button>
-                  </div>
-
-                  {/* Notes Input with Line Numbers */}
-                  <div className="flex-1 flex gap-2">
-                    <div className="text-right text-sm text-white/30 pt-1 select-none">
-                      {notes.split('\n').map((_, i) => (
-                        <div key={i} className="leading-6">{i + 1}</div>
-                      ))}
-                    </div>
-                    <textarea
-                      placeholder="Start typing..."
-                      className="flex-1 bg-transparent resize-none text-white/90 leading-6
-                        placeholder:text-white/30 focus:outline-none focus:ring-0 
-                        scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent
-                        hover:scrollbar-thumb-white/20"
-                      value={notes}
-                      onChange={(e) => {
-                        setNotes(e.target.value);
-                        // Auto-save logic here
-                      }}
-                      onKeyDown={handleKeyDown} // For tab support
-                    />
-                  </div>
-
-                  {/* Footer Stats */}
-                  <div className="flex justify-between items-center text-xs text-white/50">
-                    <div className="flex gap-4">
-                      <span>{notes.split('\n').length} lines</span>
-                      <span>{notes.split(/\s+/).filter(Boolean).length} words</span>
-                    </div>
-                    <span>{notes.length} characters</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <button className="flex items-center gap-2 px-6 py-3 bg-[#2c2a6e] rounded-xl 
+          text-white/90 hover:bg-[#2c2a6e]/80 transition-all shadow-lg ml-auto">
+          <LogIn size={20} />
+          <span>LOGIN</span>
+        </button>
       </div>
+
+      {/* Conditional Rendering */}
+      {currentView === 'calendar' ? (
+        <Calendar />
+      ) : (
+        <div className="grid grid-cols-12 gap-6 relative z-40">
+          {/* Right Column - Timer and Quote */}
+          <div className="col-span-4 space-y-6">
+            {/* Timer Section */}
+            <div className={`${getPanelColor()} rounded-2xl p-8 shadow-lg`}>
+              <TimerTabs />
+              <TimerDisplay />
+            </div>
+
+            {/* Quote Panel - Moved under timer */}
+            <div className={`${getPanelColor()} rounded-2xl p-6 shadow-lg`}>
+              <div className="text-center space-y-4">
+                <p className="text-xl">"Doubt everything. Find your own light."</p>
+                <p className="text-white/60">- Buddha -</p>
+              </div>
+            </div>
+
+            {/* Focus Sounds - Compact Version */}
+            <div className={`${getPanelColor()} rounded-2xl shadow-lg overflow-hidden`}>
+              <div className="flex flex-col h-[250px]">
+                {/* Header */}
+                <div className="p-4 border-b border-white/10">
+                  <h2 className="text-xl font-semibold">Focus Sounds</h2>
+                </div>
+
+                {/* Player Content */}
+                <div className="flex-1 p-5 flex flex-col justify-between">
+                  {/* Top Section: Track Name & Controls */}
+                  <div className="space-y-5">
+                    {/* Track Name */}
+                    <div className="text-center">
+                      <h3 className="text-xl font-medium text-white/90">{currentTrack.name}</h3>
+                    </div>
+                    
+                    {/* Main Controls */}
+                    <div className="flex justify-center items-center gap-8">
+                      <button
+                        className="text-white/60 hover:text-[#f5d820] transition-all"
+                        onClick={() => changeTrack('prev')}
+                      >
+                        <SkipBack size={20} />
+                      </button>
+                      <button
+                        className="bg-[#f5d820] text-[#1E1B4B] p-4 rounded-full hover:bg-[#f5d820]/90 
+                          transform hover:scale-105 active:scale-95 transition-all shadow-lg"
+                        onClick={togglePlay}
+                      >
+                        {isPlaying ? <Pause size={24} /> : <Play size={24} className="ml-0.5" />}
+                      </button>
+                      <button
+                        className="text-white/60 hover:text-[#f5d820] transition-all"
+                        onClick={() => changeTrack('next')}
+                      >
+                        <SkipForward size={20} />
+                      </button>
+                    </div>
+
+                    {/* Volume Slider */}
+                    <div className="flex items-center gap-3 px-1">
+                      <button 
+                        onClick={toggleMute}
+                        className="text-white/60 hover:text-[#f5d820] transition-colors"
+                      >
+                        {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+                      </button>
+                      <div className="flex-1 relative h-1 bg-white/10 rounded-full">
+                        <div 
+                          className="absolute left-0 top-0 h-full bg-[#f5d820] rounded-full"
+                          style={{ width: `${volume * 100}%` }}
+                        />
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.01"
+                          value={volume}
+                          onChange={handleVolumeChange}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Left Column - Tasks and Chat */}
+          <div className="col-span-8 space-y-6">
+            
+            {/* Today's Focus */}
+            <div className={`${getPanelColor()} rounded-2xl p-6 shadow-lg`}>
+              <h2 className="text-2xl font-semibold mb-6">Today's Focus</h2>
+              <div className="space-y-3">
+                {tasks.filter(task => task.type === 'main').map(task => (
+                  <TaskItem key={task.id} task={task} />
+                ))}
+              </div>
+              <button
+                onClick={() => handleAddTask('main')}
+                className="w-full p-2 border border-dashed border-[#f5d820] rounded-xl 
+                  text-left text-[#f5d820] mt-4 hover:bg-[#f5d820]/5 transition-all"
+              >
+                + Add Task
+              </button>
+            </div>
+
+            {/* Supporting Tasks */}
+            <div className={`${getPanelColor()} rounded-2xl p-6 shadow-lg mt-6`}>
+              <h2 className="text-2xl font-semibold mb-6">Supporting Tasks</h2>
+              <div className="space-y-3">
+                {tasks.filter(task => task.type === 'secondary').map(task => (
+                  <TaskItem key={task.id} task={task} />
+                ))}
+              </div>
+              <button
+                onClick={() => handleAddTask('secondary')}
+                className="w-full p-2 border border-dashed border-[#f5d820] rounded-xl 
+                  text-left text-[#f5d820] mt-4 hover:bg-[#f5d820]/5 transition-all"
+              >
+                + Add Task
+              </button>
+            </div>
+            {/* Quick Wins - Temporarily Disabled
+            <div className="bg-[#2D2A6E] rounded-2xl p-6 shadow-lg">
+              <h2 className="text-2xl font-semibold mb-6">Quick Wins</h2>
+              <div className="space-y-3">
+                {tasks.filter(task => task.type === 'mini').map(task => (
+                  <TaskItem key={task.id} task={task} />
+                ))}
+              </div>
+              <button
+                onClick={() => handleAddTask('mini')}
+                className="w-full p-2 border border-dashed border-[#F6C944] rounded-xl 
+                  text-left text-[#F6C944] mt-4 hover:bg-[#F6C944]/5 transition-all"
+              >
+                + Add Task
+              </button>
+            </div>
+            */}
+            {/* Bottom Row - Chat and Music */}
+            <div className="grid grid-cols-2 gap-6">
+              {/* AI Chat Panel - Half width */}
+              <div className={`${getPanelColor()} rounded-2xl shadow-lg overflow-hidden`}>
+                <div className="flex flex-col h-[450px]">
+                  {/* Chat Header */}
+                  <div className="p-4 border-b border-white/10">
+                    <h2 className="text-xl font-semibold">Chat with AI</h2>
+                  </div>
+
+                  {/* Chat Messages Area */}
+                  <div className="flex-1 p-4 overflow-y-auto space-y-4">
+                    {messages.map(message => (
+                      <div
+                        key={message.id}
+                        className={`${
+                          message.sender === 'user' 
+                            ? 'bg-white/5 ml-12' 
+                            : 'bg-[#f5d820]/10 mr-12'
+                        } rounded-xl p-4`}
+                      >
+                        <p className="text-white/90">{message.text}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Input Area */}
+                  <div className="p-4 border-t border-white/10">
+                    <div className="relative">
+                      <textarea
+                        value={aiMessage}
+                        onChange={(e) => setAiMessage(e.target.value)}
+                        placeholder="Ask me anything..."
+                        className="w-full bg-white/5 rounded-xl pl-4 pr-12 py-3 text-white/90 
+                          placeholder-white/30 border border-white/10 focus:border-[#f5d820]/30 
+                          focus:ring-0 resize-none"
+                        rows={1}
+                      />
+                      <button
+                        onClick={handleSendMessage}
+                        disabled={isSending}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 
+                          text-[#f5d820] hover:text-[#f5d820]/80 transition-colors"
+                      >
+                        <Send size={20} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notes Panel - Half width */}
+              <div className={`${getPanelColor()} rounded-2xl shadow-lg overflow-hidden`}>
+                <div className="flex flex-col h-[450px]">
+                  {/* Header with Actions */}
+                  <div className="p-4 border-b border-white/10 flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-xl font-semibold">Quick Notes</h2>
+                      <span className="text-xs text-white/50">Auto-saving</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={clearNotes}
+                        className="p-1.5 rounded-lg hover:bg-white/5 text-white/50 
+                          hover:text-white/90 transition-all"
+                      >
+                        <Eraser size={16} />
+                      </button>
+                      <button 
+                        onClick={copyToClipboard}
+                        className="p-1.5 rounded-lg hover:bg-white/5 text-white/50 
+                          hover:text-white/90 transition-all"
+                      >
+                        <Copy size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Notes Content */}
+                  <div className="flex-1 p-4 flex flex-col gap-4">
+                    {/* Quick Actions */}
+                    <div className="flex gap-2 flex-wrap">
+                      <button 
+                        onClick={() => addQuickNote("Task:")}
+                        className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 
+                          text-sm text-white/70 hover:text-white/90 transition-all"
+                      >
+                        + Task
+                      </button>
+                      <button 
+                        onClick={() => addQuickNote("Idea:")}
+                        className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 
+                          text-sm text-white/70 hover:text-white/90 transition-all"
+                      >
+                        + Idea
+                      </button>
+                      <button 
+                        onClick={() => addQuickNote("Remember:")}
+                        className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 
+                          text-sm text-white/70 hover:text-white/90 transition-all"
+                      >
+                        + Reminder
+                      </button>
+                    </div>
+
+                    {/* Notes Input with Line Numbers */}
+                    <div className="flex-1 flex gap-2">
+                      <div className="text-right text-sm text-white/30 pt-1 select-none">
+                        {notes.split('\n').map((_, i) => (
+                          <div key={i} className="leading-6">{i + 1}</div>
+                        ))}
+                      </div>
+                      <textarea
+                        placeholder="Start typing..."
+                        className="flex-1 bg-transparent resize-none text-white/90 leading-6
+                          placeholder:text-white/30 focus:outline-none focus:ring-0 
+                          scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent
+                          hover:scrollbar-thumb-white/20"
+                        value={notes}
+                        onChange={(e) => {
+                          setNotes(e.target.value);
+                          // Auto-save logic here
+                        }}
+                        onKeyDown={handleKeyDown} // For tab support
+                      />
+                    </div>
+
+                    {/* Footer Stats */}
+                    <div className="flex justify-between items-center text-xs text-white/50">
+                      <div className="flex gap-4">
+                        <span>{notes.split('\n').length} lines</span>
+                        <span>{notes.split(/\s+/).filter(Boolean).length} words</span>
+                      </div>
+                      <span>{notes.length} characters</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <audio ref={audioRef} src={currentTrack.src} loop />
       <TaskModal
         isOpen={isTaskModalOpen}
