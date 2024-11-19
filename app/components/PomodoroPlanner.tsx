@@ -562,11 +562,13 @@ export default function PomodoroPlanner() {
     })
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Tab') {
       e.preventDefault()
-      const start = e.currentTarget.selectionStart
-      const end = e.currentTarget.selectionEnd
+      const textarea = e.target as HTMLTextAreaElement
+      const start = textarea.selectionStart ?? 0
+      const end = textarea.selectionEnd ?? 0
+      
       setNotes(prev => 
         prev.substring(0, start) + '  ' + prev.substring(end)
       )
@@ -884,17 +886,14 @@ export default function PomodoroPlanner() {
                         ))}
                       </div>
                       <textarea
-                        placeholder="Start typing..."
+                        value={notes}
+                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)}
+                        onKeyDown={handleKeyDown}
                         className="flex-1 bg-transparent resize-none text-white/90 leading-6
                           placeholder:text-white/30 focus:outline-none focus:ring-0 
                           scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent
                           hover:scrollbar-thumb-white/20"
-                        value={notes}
-                        onChange={(e) => {
-                          setNotes(e.target.value);
-                          // Auto-save logic here
-                        }}
-                        onKeyDown={handleKeyDown} // For tab support
+                        placeholder="Start typing..."
                       />
                     </div>
 
