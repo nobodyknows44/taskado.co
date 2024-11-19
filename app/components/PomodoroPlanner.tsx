@@ -413,53 +413,43 @@ export default function PomodoroPlanner() {
   // Update task display to show pomodoro counts and edit button
   const TaskItem = ({ task }: { task: Task }) => {
     return (
-      <div className="flex items-center gap-4 bg-white/5 rounded-xl p-4">
-        {/* Custom Checkbox */}
+      <div className="flex items-center gap-2 sm:gap-4 bg-white/5 rounded-xl p-2 sm:p-4">
+        {/* Checkbox */}
         <div className="flex-shrink-0">
           <button
             onClick={() => handleTaskCompletion(task.id)}
-            className={`w-5 h-5 rounded flex items-center justify-center border ${
+            className={`w-4 sm:w-5 h-4 sm:h-5 rounded flex items-center justify-center border ${
               task.completed 
                 ? 'bg-[#f5d820] border-[#f5d820]' 
                 : 'border-white/20 hover:border-white/30'
             }`}
           >
-            {task.completed && (
-              <Check size={14} className="text-[#1E1B4B]" />
-            )}
+            {task.completed && <Check size={12} className="text-[#1E1B4B]" />}
           </button>
         </div>
 
-        {/* Task Name */}
-        <div className="flex-grow flex items-center justify-between">
-          <span className={`text-lg ${
-            task.completed ? 'text-white/30 line-through' : 'text-white/90'
-          }`}>
-            {task.text}
-          </span>
-
-          {/* Right Section */}
-          <div className="flex items-center gap-4">
-            {/* Pomodoro Counter */}
-            <span className="text-sm text-white/60">
-              {task.completedPomodoros}/{task.targetPomodoros}
+        {/* Task Content */}
+        <div className="flex-grow min-w-0">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <span className={`text-sm sm:text-lg truncate ${
+              task.completed ? 'text-white/30 line-through' : 'text-white/90'
+            }`}>
+              {task.text}
             </span>
 
-            {/* Edit Button */}
-            <button 
-              onClick={() => handleEditTask(task.id)}
-              className="text-[#f5d820]"
-            >
-              <Edit2 size={16} />
-            </button>
-
-            {/* Delete Button */}
-            <button 
-              onClick={() => handleDeleteTask(task.id)} 
-              className="text-[#f5d820]"
-            >
-              <Trash2 size={16} />
-            </button>
+            <div className="flex items-center gap-2 sm:gap-4">
+              <span className="text-xs sm:text-sm text-white/60">
+                {task.completedPomodoros}/{task.targetPomodoros}
+              </span>
+              <div className="flex gap-2">
+                <button onClick={() => handleEditTask(task.id)} className="text-[#f5d820]">
+                  <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                </button>
+                <button onClick={() => handleDeleteTask(task.id)} className="text-[#f5d820]">
+                  <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -597,35 +587,35 @@ export default function PomodoroPlanner() {
       {/* Date Navigation */}
       
       {/* Navigation Buttons */}
-      <div className="flex gap-4 mb-8 relative z-50">
+      <div className="flex flex-wrap gap-4 mb-8 relative z-50">
         <button 
           onClick={() => setCurrentView('calendar')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl transition-all shadow-lg
+          className={`flex items-center gap-2 px-4 sm:px-6 py-3 rounded-xl transition-all shadow-lg
             ${currentView === 'calendar' 
               ? 'bg-[#f5d820] text-[#1E1B4B]' 
               : 'bg-[#2c2a6e] text-white/90 hover:bg-[#2c2a6e]/80'
             }`}
         >
           <CalendarIcon size={20} />
-          <span>MY YEAR</span>
+          <span className="hidden sm:inline">MY YEAR</span>
         </button>
         
         <button 
           onClick={() => setCurrentView('pomodoro')}
-          className={`flex items-center gap-2 px-6 py-3 rounded-xl transition-all shadow-lg
+          className={`flex items-center gap-2 px-4 sm:px-6 py-3 rounded-xl transition-all shadow-lg
             ${currentView === 'pomodoro' 
               ? 'bg-[#f5d820] text-[#1E1B4B]' 
               : 'bg-[#2c2a6e] text-white/90 hover:bg-[#2c2a6e]/80'
             }`}
         >
           <Edit2 size={20} />
-          <span>TO-DO LIST</span>
+          <span className="hidden sm:inline">TO-DO LIST</span>
         </button>
 
-        <button className="flex items-center gap-2 px-6 py-3 bg-[#2c2a6e] rounded-xl 
+        <button className="flex items-center gap-2 px-4 sm:px-6 py-3 bg-[#2c2a6e] rounded-xl 
           text-white/90 hover:bg-[#2c2a6e]/80 transition-all shadow-lg ml-auto">
           <LogIn size={20} />
-          <span>LOGIN</span>
+          <span className="hidden sm:inline">LOGIN</span>
         </button>
       </div>
 
@@ -633,9 +623,9 @@ export default function PomodoroPlanner() {
       {currentView === 'calendar' ? (
         <Calendar />
       ) : (
-        <div className="grid grid-cols-12 gap-6 relative z-40">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative z-40">
           {/* Right Column - Timer and Quote */}
-          <div className="col-span-4 space-y-6">
+          <div className="lg:col-span-4 space-y-6">
             {/* Timer Section */}
             <div className={`${getPanelColor()} rounded-2xl p-8 shadow-lg`}>
               <TimerTabs />
@@ -721,7 +711,7 @@ export default function PomodoroPlanner() {
           </div>
 
           {/* Left Column - Tasks and Chat */}
-          <div className="col-span-8 space-y-6">
+          <div className="lg:col-span-8 space-y-6">
             
             {/* Today's Focus */}
             <div className={`${getPanelColor()} rounded-2xl p-6 shadow-lg`}>
@@ -774,7 +764,7 @@ export default function PomodoroPlanner() {
             </div>
             */}
             {/* Bottom Row - Chat and Music */}
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* AI Chat Panel - Half width */}
               <div className={`${getPanelColor()} rounded-2xl shadow-lg overflow-hidden`}>
                 <div className="flex flex-col h-[450px]">

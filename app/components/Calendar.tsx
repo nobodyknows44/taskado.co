@@ -258,7 +258,7 @@ export default function Calendar() {
         {/* Calendar Grid */}
         <div className={`grid gap-4 transition-all duration-300 ${
           viewMode === 'year' 
-            ? 'grid-cols-4' 
+            ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' 
             : 'grid-cols-1'
         }`}>
           {viewMode === 'year' ? (
@@ -277,10 +277,10 @@ export default function Calendar() {
             ))
           ) : (
             // Month View
-            <div className="bg-[#2c2a6e]/80 p-6 rounded-xl">
+            <div className="bg-[#2c2a6e]/80 p-2 sm:p-6 rounded-xl">
               <div className="grid grid-cols-7 gap-1">
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                  <div key={day} className="text-center text-white/60 text-sm py-2">
+                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
+                  <div key={day} className="text-center text-white/60 text-xs sm:text-sm py-2">
                     {day}
                   </div>
                 ))}
@@ -289,14 +289,14 @@ export default function Calendar() {
                     key={index}
                     onClick={() => handleDayClick(day.date)}
                     className={`
-                      aspect-square p-2 rounded-lg flex flex-col items-center justify-center
+                      aspect-square p-1 sm:p-2 rounded-lg flex flex-col items-center justify-center
                       ${day.isCurrentMonth ? 'text-white/90' : 'text-white/30'}
                       ${day.isToday ? 'bg-[#f5d820] text-[#1E1B4B]' : 'hover:bg-white/5'}
                       ${selectedDate?.toDateString() === day.date.toDateString() ? 'ring-2 ring-[#f5d820]' : ''}
                       transition-all
                     `}
                   >
-                    <span className="text-sm font-medium">{day.date.getDate()}</span>
+                    <span className="text-xs sm:text-sm font-medium">{day.date.getDate()}</span>
                   </button>
                 ))}
               </div>
@@ -306,7 +306,7 @@ export default function Calendar() {
 
         {/* Day Details Modal */}
         {isModalOpen && selectedDate && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 z-30">
             <div className="bg-gradient-to-b from-[#2c2a6e] to-[#1E1B4B] rounded-3xl w-full max-w-md overflow-hidden shadow-2xl border border-white/10">
               {/* Modal Header with Gradient Overlay */}
               <div className="relative">
