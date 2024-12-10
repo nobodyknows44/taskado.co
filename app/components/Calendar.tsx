@@ -1,443 +1,473 @@
 'use client'
 
+import AddTaskModal from './TaskModal'
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Shield, Lock, Check, X, Plus } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { 
+  ChevronLeft, 
+  ChevronRight, 
+  Plus, 
+  X, 
+  Calendar as CalendarIcon,
+  Clock,
+  Filter,
+  ArrowLeft,
+  Pencil
+} from 'lucide-react'
+import { format } from 'date-fns'
+import { Task } from '@/types'
+import { useAuth } from '@/contexts/AuthContext'
 
-interface CalendarTask {
-  id: string
-  text: string
-  color: 'red' | 'yellow' | 'green' | 'blue'
-  completed: boolean
+interface CalendarProps {
+  tasks: Task[]
+  onDateSelect: (date: Date) => void
+  onAddTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'userId'>, date: Date) => void
+  onEditTask: (id: string, updates: Partial<Task>) => void
+  onDeleteTask: (id: string) => void
 }
 
-interface CalendarDay {
-  date: Date
-  isCurrentMonth: boolean
-  isToday: boolean
-  hasEvents: boolean
+interface FormData {
+  title: string;
+  description: string;
+  priority: 'low' | 'medium' | 'high';
+  type: 'main' | 'secondary' | 'additional' | 'mini';
 }
 
-interface DayDetails {
-  label: string
-  startDate: string
-  endDate: string
-  color: string
-  notes: string
-}
-
-export default function Calendar() {
-  const months = Array.from({ length: 12 }, (_, i) => i)
-
+export default function Calendar({ tasks = [], onDateSelect, onAddTask, onEditTask, onDeleteTask }: CalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
+  const [viewMode, setViewMode] = useState<'month' | 'year'>('month')
+  const [hoveredDate, setHoveredDate] = useState<Date | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
-  const [tasks, setTasks] = useState<Record<string, CalendarTask[]>>({})
-  const [selectedColor, setSelectedColor] = useState<'red' | 'yellow' | 'green' | 'blue'>('yellow')
-  const [newTask, setNewTask] = useState('')
-  const [viewMode, setViewMode] = useState<'year' | 'month'>('year')
-  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth())
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [dayDetails, setDayDetails] = useState<DayDetails>({
-    label: '',
-    startDate: '',
-    endDate: '',
-    color: '#f5d820', // default yellow
-    notes: ''
+  const [formData, setFormData] = useState<FormData>({
+    title: '',
+    description: '',
+    priority: 'medium',
+    type: 'main'
   })
+  const [selectedViewDate, setSelectedViewDate] = useState<Date | null>(null)
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const { user } = useAuth()
 
-  const addTask = () => {
-    if (!selectedDate || !newTask.trim()) return
-    
-    const dateKey = selectedDate.toISOString().split('T')[0]
-    const newTaskObj: CalendarTask = {
-      id: Date.now().toString(),
-      text: newTask.trim(),
-      color: selectedColor,
-      completed: false
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ]
+
+  const weekDays = [
+    { id: 'sun', label: 'Sun' },
+    { id: 'mon', label: 'Mon' },
+    { id: 'tue', label: 'Tue' },
+    { id: 'wed', label: 'Wed' },
+    { id: 'thu', label: 'Thu' },
+    { id: 'fri', label: 'Fri' },
+    { id: 'sat', label: 'Sat' }
+  ]
+
+  const getDaysInMonth = () => {
+    const year = currentDate.getFullYear()
+    const month = currentDate.getMonth()
+    const firstDay = new Date(year, month, 1)
+    const lastDay = new Date(year, month + 1, 0)
+    const daysArray = []
+
+    for (let i = 0; i < firstDay.getDay(); i++) {
+      daysArray.push(null)
     }
-    
-    setTasks(prev => ({
-      ...prev,
-      [dateKey]: [...(prev[dateKey] || []), newTaskObj]
-    }))
-    setNewTask('')
+
+    for (let i = 1; i <= lastDay.getDate(); i++) {
+      daysArray.push(new Date(year, month, i))
+    }
+
+    return daysArray
   }
 
-  const toggleTask = (taskId: string) => {
-    if (!selectedDate) return
-    const dateKey = selectedDate.toISOString().split('T')[0]
-    
-    setTasks(prev => ({
-      ...prev,
-      [dateKey]: prev[dateKey].map(task => 
-        task.id === taskId ? { ...task, completed: !task.completed } : task
+  const getTasksForDate = (date: Date | null) => {
+    if (!date || !Array.isArray(tasks)) return []
+    return tasks.filter(task => {
+      const taskDate = new Date(task.createdAt)
+      return (
+        taskDate.getDate() === date.getDate() &&
+        taskDate.getMonth() === date.getMonth() &&
+        taskDate.getFullYear() === date.getFullYear()
       )
-    }))
-  }
-
-  const renderMonth = (monthIndex: number) => {
-    const year = currentDate.getFullYear()
-    const firstDay = new Date(year, monthIndex, 1)
-    const lastDay = new Date(year, monthIndex + 1, 0)
-    const daysInMonth = lastDay.getDate()
-    const startingDayOfWeek = firstDay.getDay()
-    
-    const emptyDays = Array(startingDayOfWeek).fill(null)
-    
-    return (
-      <div className="grid grid-cols-7 gap-0.5 text-[0.6rem]">
-        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
-          <div key={day} className="text-center text-white/30">
-            {day}
-          </div>
-        ))}
-        
-        {emptyDays.map((_, i) => (
-          <div key={`empty-${i}`} className="aspect-square" />
-        ))}
-        
-        {Array.from({ length: daysInMonth }, (_, i) => {
-          const date = new Date(year, monthIndex, i + 1)
-          const isToday = date.toDateString() === new Date().toDateString()
-          
-          return (
-            <div
-              key={i}
-              className={`
-                aspect-square flex items-center justify-center
-                ${isToday ? 'bg-[#f5d820] text-[#1E1B4B] rounded-full' : 'text-white/60'}
-              `}
-            >
-              {i + 1}
-            </div>
-          )
-        })}
-      </div>
-    )
-  }
-
-  const getMonthDays = (month: number): CalendarDay[] => {
-    const year = currentDate.getFullYear()
-    const firstDayOfMonth = new Date(year, month, 1)
-    const lastDayOfMonth = new Date(year, month + 1, 0)
-    
-    const startingDayOfWeek = firstDayOfMonth.getDay()
-    const daysInMonth = lastDayOfMonth.getDate()
-    
-    const today = new Date()
-    const calendarDays: CalendarDay[] = []
-
-    const daysFromPrevMonth = startingDayOfWeek
-    const prevMonth = new Date(year, month - 1)
-    const daysInPrevMonth = new Date(year, month, 0).getDate()
-    
-    for (let i = daysInPrevMonth - daysFromPrevMonth + 1; i <= daysInPrevMonth; i++) {
-      calendarDays.push({
-        date: new Date(prevMonth.getFullYear(), prevMonth.getMonth(), i),
-        isCurrentMonth: false,
-        isToday: false,
-        hasEvents: false
-      })
-    }
-
-    for (let i = 1; i <= daysInMonth; i++) {
-      const date = new Date(year, month, i)
-      calendarDays.push({
-        date,
-        isCurrentMonth: true,
-        isToday: date.toDateString() === today.toDateString(),
-        hasEvents: false
-      })
-    }
-
-    const daysNeeded = 42 - calendarDays.length
-    const nextMonth = new Date(year, month + 1)
-    
-    for (let i = 1; i <= daysNeeded; i++) {
-      calendarDays.push({
-        date: new Date(nextMonth.getFullYear(), nextMonth.getMonth(), i),
-        isCurrentMonth: false,
-        isToday: false,
-        hasEvents: false
-      })
-    }
-
-    return calendarDays
-  }
-
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    setCurrentDate(prev => {
-      const newDate = new Date(prev)
-      if (direction === 'prev') {
-        newDate.setMonth(prev.getMonth() - 1)
-      } else {
-        newDate.setMonth(prev.getMonth() + 1)
-      }
-      return newDate
     })
   }
 
-  const formatMonth = (date: Date): string => {
-    return date.toLocaleString('default', { month: 'long', year: 'numeric' })
+
+
+
+  
+  const getUpcomingTasks = () => {
+    const now = new Date()
+    return tasks
+      .filter(task => new Date(task.createdAt) >= now)
+      .sort((a, b) => 
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      )
   }
 
-  const handleMonthClick = (monthIndex: number) => {
-    setSelectedMonth(monthIndex)
-    setViewMode('month')
+  const viewTasks = selectedViewDate 
+    ? getTasksForDate(selectedViewDate) 
+    : getUpcomingTasks()
+
+  const isToday = (date: Date) => {
+    const today = new Date()
+    return (
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    )
   }
 
-  const handleBackToYear = () => {
-    setViewMode('year')
+  const days = getDaysInMonth()
+
+  const handleDateClick = (date: Date, isAddTask: boolean) => {
+    if (isAddTask) {
+      setSelectedDate(date)
+      setSelectedViewDate(null)
+      setIsModalOpen(true)
+    } else {
+      setSelectedViewDate(date)
+      setSelectedDate(null)
+      setIsModalOpen(true)
+    }
   }
 
-  const handleDayClick = (date: Date) => {
-    setSelectedDate(date)
-    setDayDetails(prev => ({
-      ...prev,
-      startDate: date.toISOString().split('T')[0],
-      endDate: date.toISOString().split('T')[0]
-    }))
+  const handleTaskClick = (taskId: string) => {
+    onEditTask(taskId, { status: 'completed' })
+  }
+
+  const handleSaveTaskWrapper = (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => {
+    if (!user) {
+      throw new Error('User must be logged in to save tasks');
+    }
+
+    if (editingTask) {
+      onEditTask(editingTask.id, {
+        ...taskData,
+        updatedAt: new Date()
+      });
+    } else if (selectedDate) {
+      onAddTask({
+        ...taskData,
+        status: 'pending',
+        tags: [],
+        completedPomodoros: 0,
+        targetPomodoros: 1
+      }, selectedDate);
+    }
+
+    setIsModalOpen(false);
+    setSelectedDate(null);
+    setEditingTask(null);
+    setFormData({
+      title: '',
+      description: '',
+      priority: 'medium',
+      type: 'main'
+    });
+  };
+
+  const handleTaskItemClick = (task: Task, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setEditingTask(task)
+    setFormData({
+      title: task.title,
+      description: task.description ?? '',
+      priority: task.priority,
+      type: task.type === 'additional' ? 'main' : task.type
+    })
+    setSelectedDate(new Date(task.createdAt))
+    setSelectedViewDate(null)
     setIsModalOpen(true)
   }
 
-  const handleSaveDayDetails = () => {
-    // Here you would typically save to your backend
-    // For now, we'll just close the modal
-    setIsModalOpen(false)
+  const handleDeleteTask = (taskId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    onDeleteTask(taskId)
   }
 
   return (
-    <div className="min-h-screen bg-[#151515] text-white p-8">
-      <div className="max-w-6xl mx-auto space-y-8">
-        {/* Header with Year Navigation */}
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#f5d820]/20 to-transparent blur-xl"></div>
-          <div className="relative flex items-center justify-between bg-[#2c2a6e]/80 p-6 rounded-2xl border border-[#f5d820]/20 backdrop-blur-sm">
-            {viewMode === 'month' ? (
-              // Month View Header
-              <div className="flex items-center justify-between w-full">
-                <button
-                  onClick={handleBackToYear}
-                  className="flex items-center gap-2 text-white/60 hover:text-white/90 transition-all"
-                >
-                  <ChevronLeft size={20} />
-                  <span>Back to Year</span>
-                </button>
-                <h1 className="text-2xl font-bold">
-                  {new Date(currentDate.getFullYear(), selectedMonth).toLocaleString('default', { 
-                    month: 'long', 
-                    year: 'numeric' 
-                  })}
-                </h1>
-                <div className="w-24"></div> {/* Spacer for alignment */}
-              </div>
-            ) : (
-              // Year View Header
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => navigateMonth('prev')}
-                    className="p-2 rounded-lg text-white/60 hover:text-white/90 
-                      hover:bg-white/10 transition-all"
-                  >
-                    <ChevronLeft className="h-6 w-6" />
-                  </button>
-                  <h2 className="text-2xl font-bold">Year {currentDate.getFullYear()}</h2>
-                  <button
-                    onClick={() => navigateMonth('next')}
-                    className="p-2 rounded-lg text-white/60 hover:text-white/90 
-                      hover:bg-white/10 transition-all"
-                  >
-                    <ChevronRight className="h-6 w-6" />
-                  </button>
-                </div>
-              </div>
-            )}
+    <div className="space-y-6">
+      {/* Main Calendar Container */}
+      <div className="bg-gradient-to-b from-[#1A1A1A] to-[#151515] rounded-3xl p-6 border border-white/5 shadow-2xl">
+        {/* Calendar Header */}
+        <motion.div 
+          className="flex items-center justify-between mb-6"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <button
+            onClick={() => setViewMode(viewMode === 'month' ? 'year' : 'month')}
+            className="text-2xl font-bold bg-gradient-to-r from-white/90 to-white/60 
+              bg-clip-text text-transparent hover:from-white hover:to-white/80 transition-all"
+          >
+            {months[currentDate.getMonth()]} {currentDate.getFullYear()}
+          </button>
+          
+          <div className="flex items-center gap-2 bg-white/5 rounded-xl p-1 backdrop-blur-sm">
+            <button
+              onClick={() => setCurrentDate(new Date())}
+              className="px-3 py-1.5 text-sm text-white/80 hover:bg-white/10 
+                rounded-lg transition-colors"
+            >
+              Today
+            </button>
+            <div className="w-px h-6 bg-white/10" />
+            <button
+              onClick={() => {
+                const newDate = new Date(currentDate)
+                newDate.setMonth(currentDate.getMonth() - 1)
+                setCurrentDate(newDate)
+              }}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-white/60 
+                hover:text-white/90 transition-colors"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <button
+              onClick={() => {
+                const newDate = new Date(currentDate)
+                newDate.setMonth(currentDate.getMonth() + 1)
+                setCurrentDate(newDate)
+              }}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-white/60 
+                hover:text-white/90 transition-colors"
+            >
+              <ChevronRight size={18} />
+            </button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Calendar Grid */}
-        <div className={`grid gap-4 transition-all duration-300 ${
-          viewMode === 'year' 
-            ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' 
-            : 'grid-cols-1'
-        }`}>
-          {viewMode === 'year' ? (
-            // Year View
-            months.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => handleMonthClick(index)}
-                className="bg-[#2c2a6e]/80 p-4 rounded-xl hover:bg-[#2c2a6e] transition-all"
-              >
-                <h3 className="text-lg font-medium mb-4">
-                  {new Date(currentDate.getFullYear(), index).toLocaleString('default', { month: 'long' })}
-                </h3>
-                {renderMonth(index)}
-              </button>
-            ))
-          ) : (
-            // Month View
-            <div className="bg-[#2c2a6e]/80 p-2 sm:p-6 rounded-xl">
-              <div className="grid grid-cols-7 gap-1">
-                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
-                  <div key={day} className="text-center text-white/60 text-xs sm:text-sm py-2">
-                    {day}
-                  </div>
-                ))}
-                {getMonthDays(selectedMonth).map((day, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleDayClick(day.date)}
-                    className={`
-                      aspect-square p-1 sm:p-2 rounded-lg flex flex-col items-center justify-center
-                      ${day.isCurrentMonth ? 'text-white/90' : 'text-white/30'}
-                      ${day.isToday ? 'bg-[#f5d820] text-[#1E1B4B]' : 'hover:bg-white/5'}
-                      ${selectedDate?.toDateString() === day.date.toDateString() ? 'ring-2 ring-[#f5d820]' : ''}
-                      transition-all
-                    `}
-                  >
-                    <span className="text-xs sm:text-sm font-medium">{day.date.getDate()}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+<div className="grid gap-0.5">
+  {viewMode === 'month' && (
+    <div className="grid grid-cols-7 gap-0.5">
+      {/* Weekday Headers */}
+      {weekDays.map(day => (
+        <div
+          key={day.id}
+          className="text-center text-xs font-medium text-white/40 py-1" // Reduced padding
+        >
+          {day.label}
         </div>
+      ))}
 
-        {/* Day Details Modal */}
-        {isModalOpen && selectedDate && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 z-30">
-            <div className="bg-gradient-to-b from-[#2c2a6e] to-[#1E1B4B] rounded-3xl w-full max-w-md overflow-hidden shadow-2xl border border-white/10">
-              {/* Modal Header with Gradient Overlay */}
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-[#f5d820]/20 to-transparent blur-xl"></div>
-                <div className="relative flex items-center justify-between p-6 border-b border-white/10">
-                  <h2 className="text-2xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
-                    Event Details
-                  </h2>
-                  <button 
-                    onClick={() => setIsModalOpen(false)}
-                    className="p-2 hover:bg-white/10 rounded-xl transition-all group"
-                  >
-                    <X size={20} className="text-white/60 group-hover:text-white transition-colors" />
-                  </button>
-                </div>
-              </div>
+      {/* Calendar Days */}
+      {days.map((date, index) => {
+        const tasksForDate = date ? getTasksForDate(date) : [];
+        const hasEvents = tasksForDate.length > 0;
+        const isHovered = date && hoveredDate && 
+          date.getDate() === hoveredDate.getDate() &&
+          date.getMonth() === hoveredDate.getMonth();
 
-              {/* Modal Content */}
-              <div className="p-6 space-y-6">
-                {/* Label Input with Icon */}
-                <div className="space-y-3">
-                  <label className="text-sm font-medium text-white/60">Event Name</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={dayDetails.label}
-                      onChange={(e) => setDayDetails(prev => ({ ...prev, label: e.target.value }))}
-                      className="w-full bg-white/5 rounded-xl px-5 py-3.5 focus:outline-none focus:ring-2 
-                        focus:ring-[#f5d820]/50 text-white placeholder-white/30 border border-white/10"
-                      placeholder="What's happening?"
-                    />
-                  </div>
-                </div>
-
-                {/* Date Range with Modern Selectors */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium text-white/60">Starts</label>
-                    <div className="relative">
-                      <input
-                        type="datetime-local"
-                        value={dayDetails.startDate}
-                        onChange={(e) => setDayDetails(prev => ({ ...prev, startDate: e.target.value }))}
-                        className="w-full bg-white/5 rounded-xl px-5 py-3.5 focus:outline-none focus:ring-2 
-                          focus:ring-[#f5d820]/50 text-white border border-white/10 appearance-none"
-                      />
-                      <CalendarIcon size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40" />
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium text-white/60">Ends</label>
-                    <div className="relative">
-                      <input
-                        type="datetime-local"
-                        value={dayDetails.endDate}
-                        onChange={(e) => setDayDetails(prev => ({ ...prev, endDate: e.target.value }))}
-                        className="w-full bg-white/5 rounded-xl px-5 py-3.5 focus:outline-none focus:ring-2 
-                          focus:ring-[#f5d820]/50 text-white border border-white/10 appearance-none"
-                      />
-                      <CalendarIcon size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40" />
-                    </div>
-                  </div>
+        return (
+          <motion.button
+            key={date ? date.toISOString() : `empty-${index}`}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.02 }}
+            onClick={(e) => {
+              if (date) {
+                const isAddTaskClick = !!(e.target as HTMLElement).closest('.add-task-button');
+                handleDateClick(date, isAddTaskClick);
+              }
+            }}
+            onMouseEnter={() => date && setHoveredDate(date)}
+            onMouseLeave={() => setHoveredDate(null)}
+            disabled={!date}
+            className={`
+              relative h-20 p-1.5 group transition-all duration-200 // Reduced height and padding
+              ${date ? 'hover:bg-white/10' : ''}
+              ${date && isToday(date) ? 'bg-[#2D2A6E]/30 ring-1 ring-[#2D2A6E]' : ''}
+              ${hasEvents ? 'bg-white/5' : ''}
+              rounded-lg // Reduced border radius
+            `}
+          >
+            {date && (
+              <>
+                <div className={`
+                  w-full flex items-start justify-between relative text-xs // Reduced text size
+                  ${hasEvents ? 'font-medium' : 'text-white/60'}
+                `}>
+                  <span className="relative z-10">{date.getDate()}</span>
+                  
+                  {/* Add Task Button - Shows on Hover */}
+                  {isHovered && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9, y: -5 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      transition={{ duration: 0.2, ease: "easeOut" }}
+                      className="add-task-button absolute -top-1 -right-1 
+                        bg-[#2D2A6E] hover:bg-[#3D3A7E] rounded-lg
+                        px-2 py-1 flex items-center gap-1.5
+                        text-xs font-medium text-white/90 hover:text-white
+                        shadow-lg shadow-black/20
+                        border border-white/10
+                        transition-all duration-200 cursor-pointer
+                        transform hover:-translate-y-0.5"
+                    >
+                      <Plus size={12} className="text-white/80" />
+                      <span>Add</span>
+                    </motion.div>
+                  )}
                 </div>
 
-                {/* Color Selection with Premium Design */}
-                <div className="space-y-3">
-                  <label className="text-sm font-medium text-white/60">Event Color</label>
-                  <div className="grid grid-cols-8 gap-3">
-                    {[
-                      '#f5d820', // Yellow (Primary)
-                      '#ef4444', // Red
-                      '#22c55e', // Green
-                      '#3b82f6', // Blue
-                      '#a855f7', // Purple
-                      '#ec4899', // Pink
-                      '#f97316', // Orange
-                      '#64748b'  // Slate
-                    ].map(color => (
-                      <button
-                        key={color}
-                        onClick={() => setDayDetails(prev => ({ ...prev, color }))}
+                {/* Task Indicators */}
+                {hasEvents && (
+                  <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 
+                    flex items-center gap-0.5"> 
+                    {tasksForDate.map((task, i) => (
+                      <motion.div
+                        key={`indicator-${task.id}-${i}`}
+                        whileHover={{ scale: 1.5 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTaskItemClick(task, e);
+                        }}
                         className={`
-                          w-full aspect-square rounded-xl transition-all duration-200 
-                          ${dayDetails.color === color 
-                            ? 'ring-2 ring-white ring-offset-2 ring-offset-[#2c2a6e] scale-110' 
-                            : 'hover:scale-105'
-                          }
+                          w-1 h-1 rounded-full cursor-pointer // Reduced indicator size
+                          transition-transform shadow-sm
+                          ${task.priority === 'high' ? 'bg-red-400' : 
+                            task.priority === 'medium' ? 'bg-yellow-400' : 
+                            'bg-green-400'}
                         `}
-                        style={{ backgroundColor: color }}
+                        title={task.title}
                       />
-                    ))}
+                    )).slice(0, 3)}
+                    {tasksForDate.length > 3 && (
+                      <span className="text-[8px] text-white/60 font-medium">
+                        +{tasksForDate.length - 3}
+                      </span>
+                    )}
                   </div>
-                </div>
+                )}
+              </>
+            )}
+          </motion.button>
+        );
+      })}
+    </div>
+  )}
+</div>
+      </div>
 
-                {/* Notes with Enhanced Textarea */}
-                <div className="space-y-3">
-                  <label className="text-sm font-medium text-white/60">Notes</label>
-                  <textarea
-                    value={dayDetails.notes}
-                    onChange={(e) => setDayDetails(prev => ({ ...prev, notes: e.target.value }))}
-                    className="w-full h-32 bg-white/5 rounded-xl px-5 py-3.5 focus:outline-none focus:ring-2 
-                      focus:ring-[#f5d820]/50 text-white border border-white/10 resize-none placeholder-white/30"
-                    placeholder="Add any additional details..."
-                  />
-                </div>
-              </div>
+      {/* Task Modal */}
+      <AnimatePresence>
+  {isModalOpen && (selectedDate || selectedViewDate) && (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+    >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        className="bg-[#1A1A1A] rounded-2xl p-6 w-full max-w-md relative border border-white/10 shadow-2xl"
+      >
+        <button
+          onClick={() => {
+            setIsModalOpen(false)
+            setSelectedDate(null)
+            setSelectedViewDate(null)
+            setEditingTask(null)
+            setFormData({
+              title: '',
+              description: '',
+              priority: 'medium',
+              type: 'main'
+            })
+          }}
+          className="absolute top-4 right-4 text-white/60 hover:text-white p-2 hover:bg-white/10 rounded-full transition-colors"
+        >
+          <X size={20} />
+        </button>
 
-              {/* Modal Footer with Premium Button */}
-              <div className="p-6 border-t border-white/10">
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => setIsModalOpen(false)}
-                    className="flex-1 px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 
-                      transition-all text-white/70 hover:text-white font-medium"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSaveDayDetails}
-                    className="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-[#f5d820] to-[#f5b820] 
-                      text-[#1E1B4B] hover:opacity-90 transition-all font-medium shadow-lg 
-                      shadow-[#f5d820]/20"
-                  >
-                    Save Event
-                  </button>
-                </div>
-              </div>
+        {selectedViewDate ? (
+  // View Tasks Mode
+  <>
+    <h2 className="text-xl font-semibold mb-6">
+      Tasks for {format(selectedViewDate, 'MMMM d, yyyy')}
+    </h2>
+    <div className="space-y-3">
+      {viewTasks.map((task) => (
+        <motion.div
+          key={task.id}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 20 }}
+          className="group flex items-center justify-between p-4 rounded-xl 
+            bg-white/5 hover:bg-white/8 transition-all border border-white/5 
+            hover:border-white/10"
+        >
+          <div className="flex items-center space-x-3">
+            <div className={`w-2 h-2 rounded-full ${
+              task.priority === 'high' ? 'bg-red-400' : 
+              task.priority === 'medium' ? 'bg-yellow-400' : 
+              'bg-green-400'
+            }`} />
+            <div>
+              <h3 className="text-sm font-medium text-white/90">{task.title}</h3>
+              <p className="text-xs text-white/60">
+                {format(new Date(task.createdAt), 'HH:mm')} · {task.type}
+              </p>
             </div>
           </div>
+          <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleTaskItemClick(task, e);
+              }}
+              className="p-1 hover:bg-white/10 rounded-full text-white/60 
+                hover:text-[#f5d820] transition-colors"
+            >
+              <Pencil size={16} />
+            </button>
+            <button
+              onClick={(e) => handleDeleteTask(task.id, e)}
+              className="p-1 hover:bg-white/10 rounded-full text-white/60 
+                hover:text-red-400 transition-colors"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  </>
+) : (
+          // Add/Edit Task Mode
+          <>
+          <AddTaskModal
+            isOpen={isModalOpen}
+            onClose={() => {
+              setIsModalOpen(false);
+              setSelectedDate(null);
+              setSelectedViewDate(null);
+              setEditingTask(null);
+              setFormData({
+                title: '',
+                description: '',
+                priority: 'medium',
+                type: 'main'
+              });
+            }}
+            onSave={handleSaveTaskWrapper}
+            initialData={formData}
+            taskToEdit={editingTask}
+            selectedDate={selectedDate || new Date()}
+          />
+          </>
         )}
-      </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
     </div>
   )
 }
