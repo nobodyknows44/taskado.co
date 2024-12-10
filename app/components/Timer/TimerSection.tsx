@@ -40,10 +40,7 @@ export const TimerSection = () => {
         />
       </div>
 
-      <QuotePanel 
-        quote="Doubt everything. Find your own light."
-        author="Buddha"
-      />
+      <QuotePanel />
 
       <div className="bg-[#2D2A6E] rounded-2xl shadow-lg overflow-hidden">
         <MusicPlayer

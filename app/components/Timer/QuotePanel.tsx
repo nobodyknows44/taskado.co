@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuotes } from '../../hooks/useQuotes';
+import { useQuotes } from '../../../hooks/useQuotes';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw } from 'lucide-react';
 

@@ -15,8 +15,34 @@ export const useAudioPlayer = () => {
     }
   }, [volume, isMuted])
 
-  // Add your audio control functions here
-  
+  const togglePlay = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause()
+      } else {
+        audioRef.current.play()
+      }
+      setIsPlaying(!isPlaying)
+    }
+  }
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted)
+  }
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = parseFloat(e.target.value)
+    setVolume(newVolume)
+  }
+
+  const changeTrack = (direction: 'next' | 'prev') => {
+    const currentIndex = AUDIO_TRACKS.findIndex(track => track.id === currentTrack.id)
+    let newIndex = direction === 'next' 
+      ? (currentIndex + 1) % AUDIO_TRACKS.length
+      : (currentIndex - 1 + AUDIO_TRACKS.length) % AUDIO_TRACKS.length
+    setCurrentTrack(AUDIO_TRACKS[newIndex])
+  }
+
   return {
     isPlaying,
     setIsPlaying,
@@ -26,6 +52,10 @@ export const useAudioPlayer = () => {
     setIsMuted,
     currentTrack,
     setCurrentTrack,
-    audioRef
+    audioRef,
+    togglePlay,
+    toggleMute,
+    handleVolumeChange,
+    changeTrack
   }
 } 
