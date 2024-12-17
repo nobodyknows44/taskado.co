@@ -152,7 +152,7 @@ export default function PomodoroPlanner() {
               variants={staggerContainer}
               initial="initial"
               animate="animate"
-              className="grid grid-cols-1 lg:grid-cols-12 gap-8"
+              className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8"
             >
               <motion.div 
                 variants={childVariants}
@@ -165,7 +165,7 @@ export default function PomodoroPlanner() {
 
               <motion.div 
                 variants={childVariants}
-                className="lg:col-span-8 space-y-8"
+                className="lg:col-span-8 space-y-4 lg:space-y-8"
               >
                 <motion.div variants={childVariants}>
                   <TodoList
@@ -180,11 +180,11 @@ export default function PomodoroPlanner() {
 
                 <motion.div 
                   variants={childVariants}
-                  className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-[1]"
+                  className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6 relative z-[1]"
                 >
                   <motion.div
                     variants={childVariants}
-                    className="bg-gradient-to-br from-[#2D2A6E] to-[#2D2A6E]/90 rounded-2xl shadow-xl backdrop-blur-sm border border-white/10"
+                    className="bg-gradient-to-br from-[#2D2A6E] to-[#2D2A6E]/90 rounded-2xl shadow-xl backdrop-blur-sm border border-white/10 min-h-[300px] sm:min-h-[400px]"
                   >
                     <ChatPanel
                       messages={messages}
@@ -195,7 +195,7 @@ export default function PomodoroPlanner() {
 
                   <motion.div
                     variants={childVariants}
-                    className="bg-gradient-to-br from-[#2D2A6E] to-[#2D2A6E]/90 rounded-2xl shadow-xl backdrop-blur-sm border border-white/10"
+                    className="bg-gradient-to-br from-[#2D2A6E] to-[#2D2A6E]/90 rounded-2xl shadow-xl backdrop-blur-sm border border-white/10 min-h-[300px] sm:min-h-[400px]"
                   >
                     <NotesPanel
                       notes={notes}
