@@ -146,7 +146,7 @@ export default function PomodoroPlanner() {
             initial="initial"
             animate="animate"
             exit="exit"
-            className="p-2 sm:p-4 lg:p-6"
+            className="px-1 sm:px-4 lg:px-6 py-2 sm:py-4 lg:py-6"
           >
             <motion.div 
               variants={staggerContainer}

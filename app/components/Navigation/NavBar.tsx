@@ -42,7 +42,7 @@ export const NavBar = ({ currentView, onViewChange, user, onAccountClick, select
           </div>
 
           {/* Date Navigation */}
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-end">
             <div className="flex items-center gap-1 sm:gap-2">
               <button
                 onClick={() => onDateChange(new Date(selectedDate.setDate(selectedDate.getDate() - 1)))}
@@ -64,7 +64,7 @@ export const NavBar = ({ currentView, onViewChange, user, onAccountClick, select
             {/* User Account */}
             <button
               onClick={onAccountClick}
-              className="p-1.5 sm:p-2 hover:bg-white/5 rounded-lg transition-colors ml-1 sm:ml-2"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 hover:bg-white/5 rounded-lg transition-colors sm:static sm:translate-y-0 sm:ml-2"
             >
               <User className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
