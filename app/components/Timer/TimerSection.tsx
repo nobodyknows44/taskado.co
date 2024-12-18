@@ -28,16 +28,18 @@ export const TimerSection = () => {
 
   return (
     <div className="lg:col-span-4 space-y-2 sm:space-y-4 lg:space-y-6">
-      <div className="bg-[#2D2A6E] rounded-xl sm:rounded-2xl p-2 sm:p-4 lg:p-8 shadow-lg relative isolate">
-        <TimerTabs 
-          timerMode={timerMode}
-          onModeChange={setTimerMode}
-        />
-        <TimerDisplay 
-          time={time}
-          isRunning={isRunning}
-          setIsRunning={setIsRunning}
-        />
+      <div className="bg-[#2D2A6E] rounded-xl sm:rounded-2xl p-2 sm:p-4 lg:p-8 shadow-lg touch-auto">
+        <div className="relative z-50">
+          <TimerTabs 
+            timerMode={timerMode}
+            onModeChange={setTimerMode}
+          />
+          <TimerDisplay 
+            time={time}
+            isRunning={isRunning}
+            setIsRunning={setIsRunning}
+          />
+        </div>
       </div>
 
       <div className="bg-[#2D2A6E] rounded-xl sm:rounded-2xl p-2 sm:p-4 lg:p-6 shadow-lg">
