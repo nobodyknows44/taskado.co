@@ -26,19 +26,31 @@ export const TimerSection = () => {
     changeTrack
   } = useAudioPlayer()
 
+  const handleModeChange = (mode: 'FOCUS' | 'SHORT_BREAK' | 'LONG_BREAK') => {
+    setTimerMode(mode);
+  };
+
+  const handleRunningChange = (running: boolean) => {
+    setIsRunning(running);
+  };
+
   return (
     <div className="lg:col-span-4 space-y-2 sm:space-y-4 lg:space-y-6">
-      <div className="bg-[#2D2A6E] rounded-xl sm:rounded-2xl p-2 sm:p-4 lg:p-8 shadow-lg touch-auto">
-        <div className="relative z-50">
-          <TimerTabs 
-            timerMode={timerMode}
-            onModeChange={setTimerMode}
-          />
-          <TimerDisplay 
-            time={time}
-            isRunning={isRunning}
-            setIsRunning={setIsRunning}
-          />
+      <div className="bg-[#2D2A6E] rounded-xl sm:rounded-2xl p-2 sm:p-4 lg:p-8 shadow-lg">
+        <div className="relative" style={{ touchAction: 'manipulation' }}>
+          <div className="mb-6 sm:mb-8 lg:mb-12">
+            <TimerTabs 
+              timerMode={timerMode}
+              onModeChange={handleModeChange}
+            />
+          </div>
+          <div className="mt-4">
+            <TimerDisplay 
+              time={time}
+              isRunning={isRunning}
+              setIsRunning={handleRunningChange}
+            />
+          </div>
         </div>
       </div>
 
