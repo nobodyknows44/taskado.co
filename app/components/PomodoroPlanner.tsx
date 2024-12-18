@@ -146,13 +146,13 @@ export default function PomodoroPlanner() {
             initial="initial"
             animate="animate"
             exit="exit"
-            className="px-0.5 sm:px-4 lg:px-6 py-2 sm:py-4 lg:py-6"
+            className="px-0 sm:px-4 lg:px-6 py-2 sm:py-4 lg:py-6"
           >
             <motion.div 
               variants={staggerContainer}
               initial="initial"
               animate="animate"
-              className="grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-4 lg:gap-8"
+              className="grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-4 lg:gap-8 max-w-[100%] mx-auto"
             >
               <motion.div 
                 variants={childVariants}
