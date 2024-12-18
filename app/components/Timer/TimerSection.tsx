@@ -28,7 +28,7 @@ export const TimerSection = () => {
 
   return (
     <div className="lg:col-span-4 space-y-2 sm:space-y-4 lg:space-y-6">
-      <div className="bg-[#2D2A6E] rounded-xl sm:rounded-2xl p-2 sm:p-4 lg:p-8 shadow-lg">
+      <div className="bg-[#2D2A6E] rounded-xl sm:rounded-2xl p-2 sm:p-4 lg:p-8 shadow-lg relative isolate">
         <TimerTabs 
           timerMode={timerMode}
           onModeChange={setTimerMode}
