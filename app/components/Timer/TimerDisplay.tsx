@@ -15,7 +15,7 @@ export const TimerDisplay = ({ time, isRunning, setIsRunning }: TimerDisplayProp
 
       <button
         onClick={() => setIsRunning(!isRunning)}
-        className={`w-full py-3 sm:py-4 px-6 sm:px-8 rounded-xl sm:rounded-2xl text-base sm:text-lg font-medium transition-all duration-300 ${
+        className={`relative z-10 w-full py-4 sm:py-4 px-6 sm:px-8 rounded-xl sm:rounded-2xl text-base sm:text-lg font-medium transition-all duration-300 active:scale-95 ${
           isRunning
             ? 'bg-white/10 text-white hover:bg-white/15'
             : 'bg-[#f5d820] text-[#1E1B4B] hover:bg-[#f5d820]/90 shadow-lg'
