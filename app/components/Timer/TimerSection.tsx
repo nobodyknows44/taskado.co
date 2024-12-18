@@ -36,8 +36,8 @@ export const TimerSection = () => {
 
   return (
     <div className="lg:col-span-4 space-y-2 sm:space-y-4 lg:space-y-6">
-      <div className="bg-[#2D2A6E] rounded-xl sm:rounded-2xl p-2 sm:p-4 lg:p-8 shadow-lg">
-        <div className="relative" style={{ touchAction: 'manipulation' }}>
+      <div className="bg-[#2D2A6E] rounded-xl sm:rounded-2xl p-2 sm:p-4 lg:p-8 shadow-lg relative">
+        <div className="relative z-20" style={{ touchAction: 'manipulation' }}>
           <div className="mb-6 sm:mb-8 lg:mb-12">
             <TimerTabs 
               timerMode={timerMode}
@@ -54,11 +54,11 @@ export const TimerSection = () => {
         </div>
       </div>
 
-      <div className="bg-[#2D2A6E] rounded-xl sm:rounded-2xl p-2 sm:p-4 lg:p-6 shadow-lg">
+      <div className="bg-[#2D2A6E] rounded-xl sm:rounded-2xl p-2 sm:p-4 lg:p-6 shadow-lg relative z-0">
         <QuotePanel />
       </div>
 
-      <div className="bg-[#2D2A6E] rounded-xl sm:rounded-2xl shadow-lg overflow-hidden">
+      <div className="bg-[#2D2A6E] rounded-xl sm:rounded-2xl shadow-lg overflow-hidden relative z-0">
         <MusicPlayer
           currentTrack={currentTrack}
           isPlaying={isPlaying}

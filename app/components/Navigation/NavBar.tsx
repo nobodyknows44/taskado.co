@@ -14,12 +14,13 @@ interface NavBarProps {
 
 export const NavBar = ({ currentView, onViewChange, user, onAccountClick, selectedDate, onDateChange }: NavBarProps) => {
   return (
-    <nav className="sticky top-0 z-50 bg-[#151515]/80 backdrop-blur-lg border-b border-white/10">
+    <nav className="sticky top-0 z-10 bg-[#151515]/80 backdrop-blur-lg border-b border-white/10">
       <div className="px-2 sm:px-4 lg:px-6 py-2 sm:py-3">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
           {/* View Toggle */}
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
+              type="button"
               onClick={() => onViewChange('pomodoro')}
               className={`flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors
                 ${currentView === 'pomodoro' 
@@ -30,6 +31,7 @@ export const NavBar = ({ currentView, onViewChange, user, onAccountClick, select
               Pomodoro
             </button>
             <button
+              type="button"
               onClick={() => onViewChange('calendar')}
               className={`flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors
                 ${currentView === 'calendar' 
@@ -45,6 +47,7 @@ export const NavBar = ({ currentView, onViewChange, user, onAccountClick, select
           <div className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-end">
             <div className="flex items-center gap-1 sm:gap-2">
               <button
+                type="button"
                 onClick={() => onDateChange(new Date(selectedDate.setDate(selectedDate.getDate() - 1)))}
                 className="p-1 sm:p-1.5 hover:bg-white/5 rounded-lg transition-colors"
               >
@@ -54,6 +57,7 @@ export const NavBar = ({ currentView, onViewChange, user, onAccountClick, select
                 {format(selectedDate, 'MMM d, yyyy')}
               </span>
               <button
+                type="button"
                 onClick={() => onDateChange(new Date(selectedDate.setDate(selectedDate.getDate() + 1)))}
                 className="p-1 sm:p-1.5 hover:bg-white/5 rounded-lg transition-colors"
               >
@@ -62,6 +66,7 @@ export const NavBar = ({ currentView, onViewChange, user, onAccountClick, select
 
               {/* User Account */}
               <button
+                type="button"
                 onClick={onAccountClick}
                 className="p-1.5 sm:p-2 hover:bg-white/5 rounded-lg transition-colors ml-1 sm:ml-2"
               >
